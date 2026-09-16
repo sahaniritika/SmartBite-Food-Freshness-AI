@@ -25,7 +25,7 @@ if mode == "Image Upload":
     
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Food Sample", use_column_width=True)
+        st.image(image, caption="Uploaded Food Sample", use_container_width=True)
         
         # Calculate Diagnostics
         decay_index = calculate_decay_index(image)
