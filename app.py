@@ -9,7 +9,7 @@ from models.mobilenet_model import load_model, predict_spoilage
 
 # Page Configuration
 st.set_page_config(
-    page_title="SmartBite - Check Food Freshness",
+    page_title="SmartBite - Food Freshness & Spoilage AI",
     page_icon="🍎",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -28,7 +28,7 @@ html, body, [class*="css"] {
 #MainMenu, header, footer {visibility: hidden; height: 0;}
 .block-container {
     padding-top: 1rem !important;
-    padding-bottom: 2rem !important;
+    padding-bottom: 2.5rem !important;
     max-width: 1200px !important;
 }
 
@@ -38,7 +38,7 @@ html, body, [class*="css"] {
     justify-content: space-between;
     align-items: center;
     padding: 0.8rem 0;
-    margin-bottom: 1.8rem;
+    margin-bottom: 1.2rem;
     border-bottom: 1px solid #f1f5f9;
 }
 .brand-logo {
@@ -52,24 +52,6 @@ html, body, [class*="css"] {
 }
 .brand-logo span {
     font-size: 1.8rem;
-}
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-.nav-item {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: #475569;
-    text-decoration: none;
-    padding-bottom: 4px;
-    transition: all 0.2s ease;
-}
-.nav-item.active {
-    color: #2e6040;
-    font-weight: 700;
-    border-bottom: 2.5px solid #2e6040;
 }
 .nav-right {
     display: flex;
@@ -319,32 +301,35 @@ html, body, [class*="css"] {
     color: #64748b;
 }
 
-/* How It Works Section */
-.how-section {
+/* Section Containers */
+.info-section {
     background: #ffffff;
     border: 1px solid #f1f5f9;
     border-radius: 20px;
     padding: 2.2rem 2.5rem;
     margin-top: 2rem;
     margin-bottom: 2rem;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.02);
 }
+
 .how-grid {
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 3rem;
     align-items: center;
 }
-.how-left h3 {
+.section-heading-box h3 {
     font-size: 1.8rem;
     font-weight: 800;
     color: #0f172a;
     margin: 0 0 0.4rem 0;
 }
-.how-left p {
+.section-heading-box p {
     font-size: 0.95rem;
     color: #64748b;
     margin: 0;
 }
+
 .steps-container {
     display: flex;
     align-items: center;
@@ -388,6 +373,48 @@ html, body, [class*="css"] {
     color: #cbd5e1;
     font-size: 1.2rem;
     font-weight: bold;
+}
+
+/* About Cards */
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+.about-card {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+.about-card-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+}
+.about-card h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.about-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* FAQ Accordion Styling */
+.faq-box {
+    margin-top: 1.5rem;
+}
+.streamlit-expanderHeader {
+    font-weight: 600 !important;
+    font-size: 1.02rem !important;
+    color: #1e293b !important;
+    background-color: #f8fafc !important;
+    border-radius: 10px !important;
 }
 
 /* Footer */
@@ -461,6 +488,12 @@ div[data-testid="stRadio"] label:has(input:checked) p {
     color: #ffffff !important;
 }
 
+/* Navigation Segmented Control */
+.nav-tab-container div[data-testid="stRadio"] > div {
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
 /* Buttons */
 .stButton > button {
     background: #2e6040;
@@ -486,17 +519,11 @@ def get_neural_model():
 
 model = get_neural_model()
 
-# Header Navigation
+# Header Navigation Bar
 st.markdown("""
 <div class="nav-container">
     <div class="brand-logo">
         <span>🍎</span> SmartBite
-    </div>
-    <div class="nav-links">
-        <a href="#detector" class="nav-item active">Home</a>
-        <a href="#about" class="nav-item">About</a>
-        <a href="#how-it-works" class="nav-item">How it works</a>
-        <a href="#faq" class="nav-item">FAQ</a>
     </div>
     <div class="nav-right">
         <div class="slogan">
@@ -509,119 +536,170 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Main 2-Column Layout
-col_left, col_right = st.columns([1.1, 1], gap="large")
+# Interactive Page Selector
+current_tab = st.radio(
+    "Navigation Menu",
+    ["🏠 Home", "📖 About", "⚙️ How it works", "❓ FAQ"],
+    horizontal=True,
+    label_visibility="collapsed"
+)
 
-# Variables for Result Card
-analyzed_image = None
-decay_index = 0.0
-spoilage_prob = 0.0
-is_fresh = True
-confidence_score = 92
-has_user_input = False
+# ==============================================================================
+# TAB 1: HOME (FOOD FRESHNESS DETECTOR)
+# ==============================================================================
+if current_tab == "🏠 Home":
+    # Main 2-Column Layout
+    col_left, col_right = st.columns([1.1, 1], gap="large")
 
-with col_left:
-    st.markdown("""
-    <div class="category-tag">Food Freshness Detector</div>
-    <div class="main-title">Check food freshness</div>
-    <div class="sub-text">Upload an image or use your camera to analyze the freshness and detect possible spoilage.</div>
-    """, unsafe_allow_html=True)
+    analyzed_image = None
+    decay_index = 0.0
+    spoilage_prob = 0.0
+    is_fresh = True
+    confidence_score = 92
+    has_user_input = False
 
-    input_mode = st.radio(
-        "Select Input Mode:",
-        ["🖼️ Upload image", "📷 Live camera"],
-        horizontal=True,
-        label_visibility="collapsed"
-    )
+    with col_left:
+        st.markdown("""
+        <div class="category-tag">Food Freshness Detector</div>
+        <div class="main-title">Check food freshness</div>
+        <div class="sub-text">Upload an image or use your camera to analyze the freshness and detect possible spoilage.</div>
+        """, unsafe_allow_html=True)
 
-    if input_mode == "🖼️ Upload image":
-        uploaded_file = st.file_uploader(
-            "Upload an image of fruit or vegetable",
-            type=["jpg", "jpeg", "png"],
-            help="Supported formats: JPG, JPEG, PNG (Max: 200MB)"
+        input_mode = st.radio(
+            "Select Input Mode:",
+            ["🖼️ Upload image", "📷 Live camera"],
+            horizontal=True,
+            label_visibility="collapsed"
         )
 
-        if uploaded_file is not None:
-            analyzed_image = Image.open(uploaded_file)
-            has_user_input = True
-            
-            # Compute real AI predictions
-            decay_index = calculate_decay_index(analyzed_image)
-            spoilage_prob = predict_spoilage(analyzed_image, model)
-            
-            is_fresh = (decay_index <= 40.0 and spoilage_prob <= 45.0)
-            if is_fresh:
-                confidence_score = int(max(60, min(99, 100 - max(decay_index, spoilage_prob))))
-            else:
-                confidence_score = int(max(decay_index, spoilage_prob))
+        if input_mode == "🖼️ Upload image":
+            uploaded_file = st.file_uploader(
+                "Upload an image of fruit or vegetable",
+                type=["jpg", "jpeg", "png"],
+                help="Supported formats: JPG, JPEG, PNG (Max: 200MB)"
+            )
+
+            if uploaded_file is not None:
+                analyzed_image = Image.open(uploaded_file)
+                has_user_input = True
                 
-    else:  # Live Camera Mode
-        st.write("Point your camera at the food item and take a photo:")
-        camera_photo = st.camera_input("Take a photo to analyze freshness")
-        
-        if camera_photo is not None:
-            analyzed_image = Image.open(camera_photo)
-            has_user_input = True
+                # Compute real AI predictions
+                decay_index = calculate_decay_index(analyzed_image)
+                spoilage_prob = predict_spoilage(analyzed_image, model)
+                
+                is_fresh = (decay_index <= 40.0 and spoilage_prob <= 45.0)
+                if is_fresh:
+                    confidence_score = int(max(60, min(99, 100 - max(decay_index, spoilage_prob))))
+                else:
+                    confidence_score = int(max(decay_index, spoilage_prob))
+                    
+        else:  # Live Camera Mode
+            st.write("Point your camera at the food item and capture:")
+            camera_photo = st.camera_input("Take a photo to analyze freshness")
             
-            # Compute real AI predictions
-            decay_index = calculate_decay_index(analyzed_image)
-            spoilage_prob = predict_spoilage(analyzed_image, model)
-            
-            is_fresh = (decay_index <= 40.0 and spoilage_prob <= 45.0)
-            if is_fresh:
-                confidence_score = int(max(60, min(99, 100 - max(decay_index, spoilage_prob))))
-            else:
-                confidence_score = int(max(decay_index, spoilage_prob))
+            if camera_photo is not None:
+                analyzed_image = Image.open(camera_photo)
+                has_user_input = True
+                
+                # Compute real AI predictions
+                decay_index = calculate_decay_index(analyzed_image)
+                spoilage_prob = predict_spoilage(analyzed_image, model)
+                
+                is_fresh = (decay_index <= 40.0 and spoilage_prob <= 45.0)
+                if is_fresh:
+                    confidence_score = int(max(60, min(99, 100 - max(decay_index, spoilage_prob))))
+                else:
+                    confidence_score = int(max(decay_index, spoilage_prob))
 
-    # Privacy Notice
-    st.markdown("""
-    <div class="privacy-box">
-        <div class="privacy-icon">🛡️</div>
-        <div>
-            <div class="privacy-text"><strong>Your images are processed locally and are not stored permanently.</strong></div>
-            <div class="privacy-sub">We respect your privacy.</div>
+        # Privacy Notice
+        st.markdown("""
+        <div class="privacy-box">
+            <div class="privacy-icon">🛡️</div>
+            <div>
+                <div class="privacy-text"><strong>Your images are processed locally and are not stored permanently.</strong></div>
+                <div class="privacy-sub">We respect your privacy.</div>
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-# Helper function to get base64 string from PIL Image
-def get_image_base64(pil_img):
-    buffered = io.BytesIO()
-    if pil_img.mode in ("RGBA", "P"):
-        pil_img = pil_img.convert("RGB")
-    pil_img.save(buffered, format="JPEG", quality=90)
-    return base64.b64encode(buffered.getvalue()).decode()
+    # Helper function to get base64 string from PIL Image
+    def get_image_base64(pil_img):
+        buffered = io.BytesIO()
+        if pil_img.mode in ("RGBA", "P"):
+            pil_img = pil_img.convert("RGB")
+        pil_img.save(buffered, format="JPEG", quality=90)
+        return base64.b64encode(buffered.getvalue()).decode()
 
-with col_right:
-    # Right column Card Container
-    card_title = "Analysis Result" if has_user_input else "Sample Result"
-    card_badge = "Real-time AI Analysis" if has_user_input else "This is an example result"
-    
-    st.markdown(f"""
-    <div class="result-header">
-        <div class="result-title">📊 {card_title}</div>
-        <div class="sample-badge">{card_badge}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with col_right:
+        # Right column Card Container
+        card_title = "Analysis Result" if has_user_input else "Sample Result"
+        card_badge = "Real-time AI Analysis" if has_user_input else "This is an example result"
+        
+        st.markdown(f"""
+        <div class="result-header">
+            <div class="result-title">📊 {card_title}</div>
+            <div class="sample-badge">{card_badge}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    if has_user_input and analyzed_image is not None:
-        img_b64 = get_image_base64(analyzed_image)
-        img_html = f'<img src="data:image/jpeg;base64,{img_b64}" alt="Analyzed Sample">'
-    else:
-        # High quality fresh apple sample image matching mockup
-        sample_apple_url = "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=800&q=80"
-        img_html = f'<img src="{sample_apple_url}" alt="Sample Apple">'
+        if has_user_input and analyzed_image is not None:
+            img_b64 = get_image_base64(analyzed_image)
+            img_html = f'<img src="data:image/jpeg;base64,{img_b64}" alt="Analyzed Sample">'
+        else:
+            sample_apple_url = "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=800&q=80"
+            img_html = f'<img src="{sample_apple_url}" alt="Sample Apple">'
 
-    st.markdown(f"""
-    <div class="result-image-container">
-        {img_html}
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="result-image-container">
+            {img_html}
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Status Banner Display
-    if has_user_input:
-        if is_fresh:
-            st.markdown(f"""
+        # Status Banner Display
+        if has_user_input:
+            if is_fresh:
+                st.markdown(f"""
+                <div class="status-banner-fresh">
+                    <div class="status-left">
+                        <div class="status-icon-fresh">✓</div>
+                        <div class="status-info">
+                            <h4>Fresh</h4>
+                            <p>This food looks fresh and safe to consume.</p>
+                        </div>
+                    </div>
+                    <div class="status-right">
+                        <div class="label">Confidence</div>
+                        <div class="score">{confidence_score}%</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                color_text = "Natural and vibrant"
+                texture_text = "Firm and smooth"
+                spoilage_text = f"No significant decay detected ({decay_index:.1f}% surface index)"
+            else:
+                st.markdown(f"""
+                <div class="status-banner-spoiled">
+                    <div class="status-left">
+                        <div class="status-icon-spoiled">⚠️</div>
+                        <div class="status-info-spoiled">
+                            <h4>Spoiled / Decay</h4>
+                            <p>Surface decay or spoilage detected. Not recommended to eat.</p>
+                        </div>
+                    </div>
+                    <div class="status-right-spoiled">
+                        <div class="label">Spoilage Prob</div>
+                        <div class="score">{confidence_score}%</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                color_text = "Browning or discoloration detected"
+                texture_text = "Soft or decaying surface texture"
+                spoilage_text = f"Decay Index: {decay_index:.1f}% | Spoilage: {spoilage_prob:.1f}%"
+        else:
+            # Default Sample Result (Matching Mockup)
+            st.markdown("""
             <div class="status-banner-fresh">
                 <div class="status-left">
                     <div class="status-icon-fresh">✓</div>
@@ -632,112 +710,185 @@ with col_right:
                 </div>
                 <div class="status-right">
                     <div class="label">Confidence</div>
-                    <div class="score">{confidence_score}%</div>
+                    <div class="score">92%</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
             color_text = "Natural and vibrant"
             texture_text = "Firm and smooth"
-            spoilage_text = f"No significant decay detected ({decay_index:.1f}% surface index)"
-        else:
-            st.markdown(f"""
-            <div class="status-banner-spoiled">
-                <div class="status-left">
-                    <div class="status-icon-spoiled">⚠️</div>
-                    <div class="status-info-spoiled">
-                        <h4>Spoiled / Decay</h4>
-                        <p>Surface decay or spoilage detected. Not recommended to eat.</p>
-                    </div>
-                </div>
-                <div class="status-right-spoiled">
-                    <div class="label">Spoilage Prob</div>
-                    <div class="score">{confidence_score}%</div>
-                </div>
+            spoilage_text = "No mold or dark spots detected"
+
+        # Key Indicators List
+        st.markdown(f"""
+        <div>
+            <div class="indicator-title">📋 Key Indicators</div>
+            <div class="indicator-row">
+                <div class="ind-left">🍃 Color</div>
+                <div class="ind-right">{color_text}</div>
             </div>
-            """, unsafe_allow_html=True)
-            
-            color_text = "Browning or discoloration detected"
-            texture_text = "Soft or decaying surface texture"
-            spoilage_text = f"Decay Index: {decay_index:.1f}% | Spoilage: {spoilage_prob:.1f}%"
-    else:
-        # Default Sample Result (Matching the exact screenshot)
-        st.markdown("""
-        <div class="status-banner-fresh">
-            <div class="status-left">
-                <div class="status-icon-fresh">✓</div>
-                <div class="status-info">
-                    <h4>Fresh</h4>
-                    <p>This food looks fresh and safe to consume.</p>
-                </div>
+            <div class="indicator-row">
+                <div class="ind-left">💧 Texture</div>
+                <div class="ind-right">{texture_text}</div>
             </div>
-            <div class="status-right">
-                <div class="label">Confidence</div>
-                <div class="score">92%</div>
+            <div class="indicator-row">
+                <div class="ind-left">🛡️ Spoilage / Decay</div>
+                <div class="ind-right">{spoilage_text}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-        color_text = "Natural and vibrant"
-        texture_text = "Firm and smooth"
-        spoilage_text = "No mold or dark spots detected"
 
-    # Key Indicators List
-    st.markdown(f"""
-    <div>
-        <div class="indicator-title">📋 Key Indicators</div>
-        <div class="indicator-row">
-            <div class="ind-left">🍃 Color</div>
-            <div class="ind-right">{color_text}</div>
-        </div>
-        <div class="indicator-row">
-            <div class="ind-left">💧 Texture</div>
-            <div class="ind-right">{texture_text}</div>
-        </div>
-        <div class="indicator-row">
-            <div class="ind-left">🛡️ Spoilage / Decay</div>
-            <div class="ind-right">{spoilage_text}</div>
+    # "How it works" 3-Step Summary at Bottom of Home
+    st.markdown("""
+    <div class="info-section">
+        <div class="how-grid">
+            <div class="section-heading-box">
+                <h3>How it works</h3>
+                <p>Get results in three simple steps.</p>
+            </div>
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h5>🖼️ Capture</h5>
+                        <p>Upload an image or use your camera to capture the food item.</p>
+                    </div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h5>🔍 Analyze</h5>
+                        <p>Our AI model analyzes visual features to check freshness and detect spoilage.</p>
+                    </div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h5>📄 Decide</h5>
+                        <p>Get instant results with key indicators to help you make informed choices.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# "How it works" Section (Matching Mockup)
-st.markdown("""
-<div class="how-section" id="how-it-works">
-    <div class="how-grid">
-        <div class="how-left">
-            <h3>How it works</h3>
-            <p>Get results in three simple steps.</p>
+# ==============================================================================
+# TAB 2: ABOUT
+# ==============================================================================
+elif current_tab == "📖 About":
+    st.markdown("""
+    <div class="info-section">
+        <div class="category-tag">ABOUT SMARTBITE</div>
+        <div class="main-title">Empowering Healthier & Smarter Food Choices</div>
+        <div class="sub-text">
+            SmartBite is an intelligent computer vision application designed to evaluate food freshness, prevent foodborne illness, and combat global household food waste through instant, accessible AI analysis.
         </div>
-        <div class="steps-container">
-            <div class="step-item">
+        
+        <div class="about-grid">
+            <div class="about-card">
+                <div class="about-card-icon">🧠</div>
+                <h4>Deep Learning Vision</h4>
+                <p>Powered by MobileNetV2 neural networks trained to recognize visual indicators of freshness, ripeness, and decomposition across diverse produce categories.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-card-icon">🔬</div>
+                <h4>HSV Pixel Decay Analysis</h4>
+                <p>Computer vision algorithms isolate surface decay pixels and color shifts to calculate a precise quantitative decay index across food surfaces.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-card-icon">🌍</div>
+                <h4>Zero Food Waste Mission</h4>
+                <p>Helping consumers distinguish safe, ripe food from spoiled items to reduce unnecessary food disposal while guaranteeing personal health and safety.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-card-icon">🔒</div>
+                <h4>100% Privacy Focused</h4>
+                <p>All image evaluation happens locally on device or in temporary memory sessions with zero permanent cloud storage of your private pictures.</p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==============================================================================
+# TAB 3: HOW IT WORKS
+# ==============================================================================
+elif current_tab == "⚙️ How it works":
+    st.markdown("""
+    <div class="info-section">
+        <div class="category-tag">HOW IT WORKS</div>
+        <div class="main-title">Behind the AI Analysis Pipeline</div>
+        <div class="sub-text">SmartBite utilizes a dual-engine architecture combining deep convolutional neural networks with color space computer vision.</div>
+
+        <div class="steps-container" style="margin: 2rem 0; flex-wrap: wrap;">
+            <div class="step-item" style="background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
                 <div class="step-num">1</div>
                 <div class="step-content">
-                    <h5>🖼️ Capture</h5>
-                    <p>Upload an image or use your camera to capture the food item.</p>
+                    <h5>Image Ingestion & Preprocessing</h5>
+                    <p>The image is converted to RGB format, normalized to standard ImageNet dimensions (224x224), and transformed into optimized neural tensor inputs.</p>
                 </div>
             </div>
             <div class="step-arrow">→</div>
-            <div class="step-item">
+            <div class="step-item" style="background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
                 <div class="step-num">2</div>
                 <div class="step-content">
-                    <h5>🔍 Analyze</h5>
-                    <p>Our AI model analyzes visual features to check freshness and detect spoilage.</p>
+                    <h5>Surface Decay Segmentation</h5>
+                    <p>Using HSV color space segmentation, we identify dark blemishes, rotting zones, and fungal patterns, computing a surface decay percentage.</p>
                 </div>
             </div>
             <div class="step-arrow">→</div>
-            <div class="step-item">
+            <div class="step-item" style="background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
                 <div class="step-num">3</div>
                 <div class="step-content">
-                    <h5>📄 Decide</h5>
-                    <p>Get instant results with key indicators to help you make informed choices.</p>
+                    <h5>Confidence & Status Decision</h5>
+                    <p>Both visual indicators are weighted to produce an actionable safety verdict (Fresh & Safe vs. Spoiled) alongside high-confidence key indicators.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-# Footer
+# ==============================================================================
+# TAB 4: FAQ
+# ==============================================================================
+elif current_tab == "❓ FAQ":
+    st.markdown("""
+    <div class="info-section">
+        <div class="category-tag">FREQUENTLY ASKED QUESTIONS</div>
+        <div class="main-title">Got questions? We've got answers.</div>
+        <div class="sub-text">Everything you need to know about the SmartBite freshness detector.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.expander("🍎 What types of food can I scan with SmartBite?", expanded=True):
+        st.write("""
+        SmartBite is optimized for fruits and vegetables including **apples, bananas, tomatoes, oranges, strawberries, bell peppers, leafy greens, and bakery goods**. The neural model evaluates color vibrancy, skin texture, and surface blemishes.
+        """)
+
+    with st.expander("🔬 How does the AI calculate the Freshness & Spoilage score?"):
+        st.write("""
+        SmartBite uses a hybrid approach:
+        1. **MobileNetV2 Neural Network**: Scans visual texture, structural shape, and feature distributions.
+        2. **HSV Color Decomposition**: Pinpoints localized mold, oxidation, and fungal patches to calculate the **Surface Decay Index**.
+        """)
+
+    with st.expander("🔒 Are my photos uploaded or stored anywhere?"):
+        st.write("""
+        **No.** Your privacy is fully preserved. Uploaded pictures and live webcam frames are analyzed directly in temporary RAM and are discarded immediately after diagnosis.
+        """)
+
+    with st.expander("📱 Can I use SmartBite on my mobile phone?"):
+        st.write("""
+        **Yes!** Simply open the SmartBite URL in your mobile browser. You can snap a photo directly using your phone's camera or choose from your photo gallery.
+        """)
+
+    with st.expander("⚠️ What should I do if the app flags food as Spoiled?"):
+        st.write("""
+        If significant surface decay or discoloration is flagged, inspect the item carefully for foul odors or soft spots before consuming. When in doubt, avoid consumption to protect health and safety.
+        """)
+
+# Common Footer
 st.markdown("""
 <div class="app-footer">
     <div class="footer-left">
